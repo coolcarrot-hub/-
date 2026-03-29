@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>实时聊天室 - 实用工具导航</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* 聊天室特定样式 */
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 200px);
+            max-height: 700px;
+            background-color: var(--card-bg);
+            border-radius: 15px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 12px var(--shadow-color);
+            overflow: hidden;
+        }
+        
+        .chat-header {
+            padding: 20px;
+            background-color: var(--primary-color);
+            color: white;
+            text-align: center;
+        }
+        
+        .chat-header h2 {
+            margin: 0;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .message {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            position: relative;
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        .message.received {
+            align-self: flex-start;
+            background-color: var(--bg-color);
+            border: 1px solid var(--border-color);
+        }
+        
+        .message.sent {
+            align-self: flex-end;
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .message.system {
+            align-self: center;
+            background-color: rgba(67, 97, 238, 0.1);
+            border: 1px solid rgba(67, 97, 238, 0.2);
+            max-width: 90%;
+            text-align: center;
+        }
+        
+        .message.private {
+            border-left: 4px solid var(--accent-color);
+        }
+        
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 0.85rem;
+            opacity: 0.8;
+        }
+        
+        .message-ip {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-top: 3px;
+        }
+        
+        .message-content {
+            line-height: 1.4;
+            word-break: break-word;
+        }
+        
+        .chat-input-area {
+            padding: 20px;
+            border-top: 1px solid var(--border-color);
+            background-color: var(--card-bg);
+        }
+        
+        .input-container {
+            display: flex;
+            gap: 10px;
+        }
+        
+        #messageInput {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid var(--border-color);
+            border-radius: 25px;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-size: 1rem;
+            transition: all var(--transition-speed);
+        }
+        
+        #messageInput:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+        
+        #sendMessage {
+            padding: 12px 24px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all var(--transition-speed);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        #sendMessage:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+        
+        .chat-info {
+            text-align: center;
+            margin-top: 20px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            border: 2px solid var(--border-color);
+            border-radius: 25px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all var(--transition-speed);
+            text-decoration: none;
+            margin-top: 20px;
+        }
+        
+        .back-btn:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+        
+        .user-list {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .user-list h3 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            color: var(--text-color);
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .users {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .user-tag {
+            padding: 5px 12px;
+            background-color: rgba(67, 97, 238, 0.1);
+            color: var(--primary-color);
+            border-radius: 15px;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .user-tag.you {
+            background-color: rgba(76, 201, 240, 0.2);
+            color: var(--success-color);
+        }
+        
+        .login-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .login-modal.hidden {
+            display: none;
+        }
+        
+        .login-box {
+            background-color: var(--card-bg);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            max-width: 400px;
+            width: 90%;
+        }
+        
+        .login-box h3 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            color: var(--text-color);
+            text-align: center;
+        }
+        
+        .login-tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--border-color);
+        }
+        
+        .login-tab {
+            flex: 1;
+            padding: 10px;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all var(--transition-speed);
+        }
+        
+        .login-tab.active {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--primary-color);
+        }
+        
+        .login-form {
+            display: none;
+        }
+        
+        .login-form.active {
+            display: block;
+        }
+        
+        .login-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-size: 1rem;
+            margin-bottom: 15px;
+        }
+        
+        .login-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+        
+        .login-submit {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all var(--transition-speed);
+        }
+        
+        .login-submit:hover {
+            background-color: var(--secondary-color);
+        }
+        
+        .login-message {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+        
+        .login-message.success {
+            background-color: rgba(76, 201, 240, 0.1);
+            color: var(--success-color);
+        }
+        
+        .login-message.error {
+            background-color: rgba(255, 107, 107, 0.1);
+            color: var(--error-color);
+        }
+        
+        .online-count {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        
+        @media (max-width: 768px) {
+            .chat-container {
+                height: calc(100vh - 250px);
+            }
+            
+            .input-container {
+                flex-direction: column;
+            }
+            
+            #sendMessage {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 头部区域 -->
+        <header class="header">
+            <div class="header-content">
+                <h1 class="logo">
+                    <i class="fas fa-comments"></i>
+                    实时聊天室
+                </h1>
+                <p class="subtitle">与真实用户实时交流，分享工具使用心得</p>
+                
+                <!-- 主题切换 -->
+                <div class="theme-toggle">
+                    <button id="themeToggle" class="theme-btn" title="切换主题">
+                        <i class="fas fa-moon"></i>
+                        <span>深色模式</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- 导航 -->
+        <nav class="category-nav">
+            <div class="category-container">
+                <a href="/" class="category-btn">
+                    <i class="fas fa-toolbox"></i>
+                    工具导航
+                </a>
+                <button class="category-btn active">
+                    <i class="fas fa-comments"></i>
+                    实时聊天
+                </button>
+            </div>
+        </nav>
+
+        <!-- 登录/注册模态框 -->
+        <div id="loginModal" class="login-modal">
+            <div class="login-box">
+                <h3 id="loginTitle">用户登录</h3>
+                
+                <div class="login-tabs">
+                    <button class="login-tab active" data-tab="login">登录</button>
+                    <button class="login-tab" data-tab="register">注册</button>
+                </div>
+                
+                <!-- 登录表单 -->
+                <form id="loginForm" class="login-form active">
+                    <input type="text" id="loginUsername" class="login-input" placeholder="用户名" required>
+                    <input type="password" id="loginPassword" class="login-input" placeholder="密码" required>
+                    <button type="submit" class="login-submit">登录</button>
+                    <div id="loginMessage" class="login-message"></div>
+                </form>
+                
+                <!-- 注册表单 -->
+                <form id="registerForm" class="login-form">
+                    <input type="text" id="registerUsername" class="login-input" placeholder="用户名 (2-20个字符)" required>
+                    <input type="password" id="registerPassword" class="login-input" placeholder="密码 (至少6个字符)" required>
+                    <input type="password" id="registerConfirmPassword" class="login-input" placeholder="确认密码" required>
+                    <button type="submit" class="login-submit">注册</button>
+                    <div id="registerMessage" class="login-message"></div>
+                </form>
+            </div>
+        </div>
+
+        <!-- 主内容区域 -->
+        <main class="main-content">
+            <div class="chat-container">
+                <div class="chat-header">
+                    <h2><i class="fas fa-users"></i> 在线聊天室 <span id="onlineCount" class="online-count">(0人在线)</span></h2>
+                </div>
+                
+                <div class="chat-messages" id="chatMessages">
+                    <!-- 消息将通过Socket.io动态生成 -->
+                </div>
+                
+                <div class="chat-input-area">
+                    <div class="input-container">
+                        <input type="text" id="messageInput" placeholder="请先登录才能发送消息..." disabled>
+                        <button id="sendMessage" disabled>
+                            <i class="fas fa-paper-plane"></i>
+                            发送
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 在线用户列表 -->
+            <div class="user-list">
+                <h3>
+                    <i class="fas fa-user-friends"></i> 在线用户
+                    <span id="userCount">0</span>
+                </h3>
+                <div class="users" id="userList">
+                    <!-- 用户将通过Socket.io动态生成 -->
+                </div>
+            </div>
+            
+            <!-- 聊天室信息 -->
+            <div class="chat-info">
+                <p><i class="fas fa-info-circle"></i> 这是一个真正的实时聊天室，所有用户都是真实的</p>
+                <p><i class="fas fa-keyboard"></i> 私聊命令: /私聊 [用户名] [消息]</p>
+                <a href="/" class="back-btn">
+                    <i class="fas fa-arrow-left"></i>
+                    返回工具导航
+                </a>
+            </div>
+        </main>
+
+        <!-- 底部信息 -->
+        <footer class="footer">
+            <div class="footer-content">
+                <p><a href="https://www.wuxiaoguo.com" target="_blank" class="footer-link">www.wuxiaoguo.com</a> | 实用工具导航 | 实时聊天室</p>
+                <p class="footer-info">
+                    <i class="fas fa-comments"></i>
+                    与真实用户实时交流，系统管理员消息不显示IP地址
+                </p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Socket.io 客户端库 -->
+    <script src="/socket.io/socket.io.js"></script>
+    
+    <script>
+        // 全局变量
+        let socket = null;
+        let currentUser = null;
+        let onlineUsers = [];
+        let currentTheme = localStorage.getItem('theme') || 'light';
+        
+        // DOM 元素
+        const loginModal = document.getElementById('loginModal');
+        const loginTabs = document.querySelectorAll('.login-tab');
+        const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
+        const loginUsername = document.getElementById('loginUsername');
+        const loginPassword = document.getElementById('loginPassword');
+        const registerUsername = document.getElementById('registerUsername');
+        const registerPassword = document.getElementById('registerPassword');
+        const registerConfirmPassword = document.getElementById('registerConfirmPassword');
+        const loginMessage = document.getElementById('loginMessage');
+        const registerMessage = document.getElementById('registerMessage');
+        const chatMessages = document.getElementById('chatMessages');
+        const messageInput = document.getElementById('messageInput');
+        const sendMessageBtn = document.getElementById('sendMessage');
+        const themeToggleBtn = document.getElementById('themeToggle');
+        const userList = document.getElementById('userList');
+        const userCount = document.getElementById('userCount');
+        const onlineCount = document.getElementById('onlineCount');
+        
+        // 初始化主题
+        function initTheme() {
+            document.documentElement.setAttribute('data-theme', currentTheme);
+            updateThemeButton();
+        }
+        
+        function updateThemeButton() {
+            const icon = themeToggleBtn.querySelector('i');
+            const text = themeToggleBtn.querySelector('span');
+            
+            if (currentTheme === 'dark') {
+                icon.className = 'fas fa-sun';
+                text.textContent = '浅色模式';
+            } else {
+                icon.className = 'fas fa-moon';
+                text.textContent = '深色模式';
+            }
+        }
+        
+        function toggleTheme() {
+            currentTheme = currentTheme === 'light' ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', currentTheme);
+            localStorage.setItem('theme', currentTheme);
+            updateThemeButton();
+        }
+        
+        // 初始化主题
+        initTheme();
+        themeToggleBtn.addEventListener('click', toggleTheme);
+        
+        // 登录/注册标签切换
+        loginTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabName = tab.dataset.tab;
+                
+                // 更新标签状态
+                loginTabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                // 更新表单显示
+                loginForm.classList.remove('active');
+                registerForm.classList.remove('active');
+                
+                if (tabName === 'login') {
+                    loginForm.classList.add('active');
+                } else {
+                    registerForm.classList.add('active');
+                }
+                
+                // 清空消息
+                loginMessage.textContent = '';
+                registerMessage.textContent = '';
+            });
+        });
+        
+        // 登录表单提交
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const username = loginUsername.value.trim();
+            const password = loginPassword.value.trim();
+            
